@@ -1,0 +1,52 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECR
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Common Settings
+        Parameters:
+          - ProjectName
+          - Environment
+      - Label:
+          default: ECR Settings
+        Parameters:
+          - RepositoryName1
+
+Parameters:
+  ProjectName:
+    Description: Project Name
+    Type: String
+    Default: unnamed
+  Environment:
+    Description: Environment
+    Type: String
+    Default: dev
+    AllowedValues:
+      - prod
+      - dev
+      - stg
+      - test
+  RepositoryName1:
+    Type: String
+    Default: custom-firelens
+
+Resources:
+  ECR1:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub ${ProjectName}-${Environment}-${RepositoryName1}
+      ImageTagMutability: "IMMUTABLE"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: '{"rules":[{"rulePriority":1,"description":"古い世代のイメージを削除","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":10},"action":{"type":"expire"}}]}'
+        RegistryId: !Ref AWS::AccountId
+
+Outputs:
+  ExportECR1:
+    Value: !Ref ECR1
+    Export:
+      Name: !Sub ${ProjectName}-${Environment}-ECR1
