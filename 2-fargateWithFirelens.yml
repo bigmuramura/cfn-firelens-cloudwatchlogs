@@ -180,19 +180,18 @@ Resources:
       Memory: "512"
       ContainerDefinitions:
         - Essential: true
+          Name: !Ref AppName
           Image: !Ref ImageNameWebApp
           LogConfiguration:
             LogDriver: "awsfirelens"
-            Options:
-              Name: "stdout"
-          Name: !Ref AppName
+          #    Options:
+          #      Name: "stdout"
           PortMappings:
             - ContainerPort: 80
               HostPort: 80
               Protocol: "tcp"
         - Essential: true
-          FirelensConfiguration:
-            Type: "fluentbit"
+          Name: "log_router"
           Image: !Ref ImageNameFirelens
           LogConfiguration:
             LogDriver: "awslogs"
@@ -200,7 +199,11 @@ Resources:
               awslogs-group: !Ref ECSLogGroup
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: "firelens"
-          Name: "log_router"
+          FirelensConfiguration:
+            Type: "fluentbit"
+            Options:
+              config-file-type: "file"
+              config-file-value: "/fluent-bit/etc/extra.conf"
           User: "0"
 
   # --------------------------------------------
